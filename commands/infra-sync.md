@@ -11,13 +11,13 @@ Sync code, configuration, or database between Kage Bunshin nodes.
 ## Usage
 
 ```bash
-/infra-sync full                      # Full sync to all nodes
-/infra-sync full --target=ndnlinuxsrv2  # Sync to specific node
-/infra-sync code                      # Sync code/repo only
-/infra-sync config                    # Sync config files only
-/infra-sync db                        # Sync PostgreSQL database
-/infra-sync verify                    # Verify sync without changes
-/infra-sync full --dry-run            # Show what would sync
+/infra-sync full                        # Full sync to all nodes
+/infra-sync full --target=node-secondary  # Sync to specific node
+/infra-sync code                        # Sync code/repo only
+/infra-sync config                      # Sync config files only
+/infra-sync db                          # Sync PostgreSQL database
+/infra-sync verify                      # Verify sync without changes
+/infra-sync full --dry-run              # Show what would sync
 ```
 
 ## Actions
@@ -82,7 +82,7 @@ Default targets from `kage_bunshin.node_inventory`:
 
 | Node | Address | Role |
 |------|---------|------|
-| ndnlinuxsrv2 | ndnlinuxsrv2 | Secondary |
+| node-secondary | node-secondary | Secondary |
 
 ## Credentials
 
@@ -91,5 +91,5 @@ SSH keys are retrieved from `kage_bunshin.secrets`:
 ```sql
 SELECT pgp_sym_decrypt(encrypted_value, 'KEY')
 FROM kage_bunshin.secrets
-WHERE name = 'ssh-key-ndnlinuxsrv2';
+WHERE name = 'ssh-key-node-secondary';
 ```

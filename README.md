@@ -20,8 +20,8 @@ Distributed AI infrastructure plugin for the [Kage Bunshin](https://github.com/A
               ┌──────────────┴──────────────┐
               │                             │
     ┌─────────▼─────────┐       ┌──────────▼──────────┐
-    │   ROG Flow Z13    │       │     Vengeance       │
-    │  Radeon 8060S     │       │    RTX 4090 24GB    │
+    │  node-gpu-mobile  │       │   node-gpu-primary  │
+    │     AMD GPU       │       │    NVIDIA RTX 4090  │
     │  64GB Unified     │       │    64GB DDR5        │
     │  2.9 tok/s (72B)  │       │    2.8 tok/s (72B)  │
     └───────────────────┘       └─────────────────────┘
@@ -31,10 +31,10 @@ Distributed AI infrastructure plugin for the [Kage Bunshin](https://github.com/A
 
 | Node | Role | GPU | RAM | 72B Capable |
 |------|------|-----|-----|-------------|
-| ndnlinuxsrv1 | Primary/Orchestrator | CPU | 30GB | No |
-| ndnlinuxsrv2 | Secondary | CPU | 14GB | No |
-| rog-flow-z13 | GPU Mobile | Radeon 8060S | 64GB | Yes |
-| vengeance | GPU Primary | RTX 4090 | 64GB | Yes |
+| node-primary | Primary/Orchestrator | CPU | 30GB | No |
+| node-secondary | Secondary | CPU | 14GB | No |
+| node-gpu-mobile | GPU Mobile | AMD Radeon | 64GB | Yes |
+| node-gpu-primary | GPU Primary | RTX 4090 | 64GB | Yes |
 
 ## Quick Start
 
@@ -47,6 +47,7 @@ sudo apt install nginx
 ### 2. Deploy load balancer config
 
 ```bash
+# Update the IPs in config/ollama-lb.conf first!
 sudo cp config/ollama-lb.conf /etc/nginx/sites-available/ollama-lb
 sudo ln -s /etc/nginx/sites-available/ollama-lb /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
@@ -55,8 +56,18 @@ sudo nginx -t && sudo systemctl reload nginx
 ### 3. Verify cluster status
 
 ```bash
+# Update the IPs in scripts/cluster-status.sh first!
 ./scripts/cluster-status.sh
 ```
+
+## Configuration
+
+Before using, update the placeholder IPs in these files:
+
+| File | Placeholders to Replace |
+|------|------------------------|
+| `config/ollama-lb.conf` | `<GPU_MOBILE_IP>`, `<GPU_PRIMARY_IP>` |
+| `scripts/cluster-status.sh` | `<SECONDARY_IP>`, `<GPU_MOBILE_IP>`, `<GPU_PRIMARY_IP>` |
 
 ## Load Balancer
 
@@ -69,8 +80,8 @@ The nginx load balancer runs on port `11435` and distributes requests across GPU
 | `POST /api/generate` | Load-balanced inference (72B models) |
 | `GET /health` | Load balancer health check |
 | `GET /backends` | List backend nodes |
-| `GET /health/rog` | ROG Flow Z13 health |
-| `GET /health/vengeance` | Vengeance health |
+| `GET /health/gpu-mobile` | GPU mobile node health |
+| `GET /health/gpu-primary` | GPU primary node health |
 
 ### Usage
 
@@ -80,8 +91,8 @@ curl http://localhost:11435/api/generate \
   -d '{"model":"qwen2.5:72b","prompt":"Hello","stream":false}'
 
 # Check backend health
-curl http://localhost:11435/health/rog
-curl http://localhost:11435/health/vengeance
+curl http://localhost:11435/health/gpu-mobile
+curl http://localhost:11435/health/gpu-primary
 ```
 
 ### Strategy
@@ -108,10 +119,10 @@ Monitor all nodes with a single command:
 === Kage Bunshin Cluster Status ===
 
 NODES:
-  ndnlinuxsrv1    ✓ ONLINE   (localhost)
-  ndnlinuxsrv2    ✓ ONLINE   (CPU)
-  rog-flow-z13    ✓ ONLINE   (GPU: Radeon 8060S)
-  vengeance       ✓ ONLINE   (GPU: RTX 4090)
+  node-primary      ✓ ONLINE   (localhost)
+  node-secondary    ✓ ONLINE   (CPU)
+  node-gpu-mobile   ✓ ONLINE   (GPU: AMD Radeon)
+  node-gpu-primary  ✓ ONLINE   (GPU: RTX 4090)
 
 LOAD BALANCER:   ✓ ONLINE (port 11435)
 72B INFERENCE:   ✓ AVAILABLE (2 GPU nodes)
@@ -125,8 +136,8 @@ CLUSTER STATUS:  HEALTHY (4/4 nodes online)
 
 | Node | Model | Speed |
 |------|-------|-------|
-| vengeance | qwen2.5:72b | 2.8 tok/s |
-| rog-flow-z13 | qwen2.5:72b | 2.9 tok/s |
+| node-gpu-primary | qwen2.5:72b | 2.8 tok/s |
+| node-gpu-mobile | qwen2.5:72b | 2.9 tok/s |
 
 ### Parallel Inference (72B)
 
@@ -137,7 +148,7 @@ Running qwen2.5:72b simultaneously on both GPU nodes:
 | Combined throughput | 3.4 tok/s |
 | Improvement | ~20% over single node |
 
-### 32B Models (vengeance - fits in VRAM)
+### 32B Models (node-gpu-primary - fits in VRAM)
 
 | Model | Speed |
 |-------|-------|
@@ -165,10 +176,10 @@ sudo systemctl restart ollama
 # Restart Ollama
 ```
 
-### ROCm for AMD GPUs (ROG Flow Z13)
+### ROCm for AMD GPUs
 
 ```bash
-# Add systemd override for gfx1151
+# Add systemd override for your GPU version
 echo '[Service]
 Environment="HSA_OVERRIDE_GFX_VERSION=11.5.1"' | sudo tee /etc/systemd/system/ollama.service.d/rocm.conf
 sudo systemctl daemon-reload
@@ -217,4 +228,4 @@ MIT
 
 ## Author
 
-ndninja - [AI-Prompt-Ops-Kitchen](https://github.com/AI-Prompt-Ops-Kitchen)
+[AI-Prompt-Ops-Kitchen](https://github.com/AI-Prompt-Ops-Kitchen)

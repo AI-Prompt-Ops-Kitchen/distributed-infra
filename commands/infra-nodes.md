@@ -27,9 +27,9 @@ The node inventory is stored in `kage_bunshin.node_inventory`:
 SELECT * FROM kage_bunshin.node_inventory WHERE is_active = true;
 
 -- Example output:
--- name          | hostname       | tailscale_ip     | role      | services
--- ndnlinuxsrv1  | localhost      | 100.77.248.9     | primary   | postgres,ollama,kb-api
--- ndnlinuxsrv2  | ndnlinuxsrv2   | 100.95.177.124   | secondary | postgres,ollama
+-- name           | hostname       | tailscale_ip     | role      | services
+-- node-primary   | localhost      | <PRIMARY_IP>     | primary   | postgres,ollama,kb-api
+-- node-secondary | node-secondary | <SECONDARY_IP>   | secondary | postgres,ollama
 ```
 
 ## Actions
@@ -113,11 +113,11 @@ CREATE TABLE IF NOT EXISTS kage_bunshin.node_inventory (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Default nodes
+-- Default nodes (update with your IPs)
 INSERT INTO kage_bunshin.node_inventory (name, hostname, tailscale_ip, role, services)
 VALUES
-    ('ndnlinuxsrv1', 'localhost', '100.77.248.9', 'primary', ARRAY['postgres', 'ollama', 'kb-api']),
-    ('ndnlinuxsrv2', 'ndnlinuxsrv2', '100.95.177.124', 'secondary', ARRAY['postgres', 'ollama'])
+    ('node-primary', 'localhost', '<PRIMARY_IP>', 'primary', ARRAY['postgres', 'ollama', 'kb-api']),
+    ('node-secondary', 'node-secondary', '<SECONDARY_IP>', 'secondary', ARRAY['postgres', 'ollama'])
 ON CONFLICT (name) DO NOTHING;
 ```
 
@@ -127,10 +127,10 @@ ON CONFLICT (name) DO NOTHING;
 Kage Bunshin Node Inventory
 ===========================
 
-Name          Hostname       Tailscale IP      Role       Services              Last Seen
-----          --------       ------------      ----       --------              ---------
-ndnlinuxsrv1  localhost      100.77.248.9      primary    postgres,ollama,kb-api  now
-ndnlinuxsrv2  ndnlinuxsrv2   100.95.177.124    secondary  postgres,ollama         2 min ago
+Name            Hostname        Tailscale IP      Role       Services                Last Seen
+----            --------        ------------      ----       --------                ---------
+node-primary    localhost       <PRIMARY_IP>      primary    postgres,ollama,kb-api  now
+node-secondary  node-secondary  <SECONDARY_IP>    secondary  postgres,ollama         2 min ago
 
 Total: 2 active nodes
 ```

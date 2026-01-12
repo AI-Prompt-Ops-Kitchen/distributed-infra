@@ -27,13 +27,13 @@ Tests network connectivity between nodes:
 
 ```bash
 # Test SSH connectivity
-for node in ndnlinuxsrv2; do
+for node in node-secondary; do
     echo -n "$node: "
     ssh -o ConnectTimeout=5 $node 'echo OK' 2>/dev/null || echo "FAIL"
 done
 
 # Test Tailscale connectivity
-tailscale ping 100.95.177.124
+tailscale ping <SECONDARY_IP>
 ```
 
 ### services
@@ -46,8 +46,8 @@ curl -sf http://localhost:11434/api/tags && echo "Ollama: OK"
 pg_isready && echo "PostgreSQL: OK"
 
 # Remote services
-ssh ndnlinuxsrv2 'curl -sf http://localhost:11434/api/tags' && echo "Remote Ollama: OK"
-ssh ndnlinuxsrv2 'pg_isready' && echo "Remote PostgreSQL: OK"
+ssh node-secondary 'curl -sf http://localhost:11434/api/tags' && echo "Remote Ollama: OK"
+ssh node-secondary 'pg_isready' && echo "Remote PostgreSQL: OK"
 ```
 
 ### models
@@ -59,12 +59,12 @@ Tests model availability across nodes:
 echo "Local models:"
 curl -s http://localhost:11434/api/tags | jq -r '.models[].name'
 
-echo "Remote models (ndnlinuxsrv2):"
-ssh ndnlinuxsrv2 'curl -s http://localhost:11434/api/tags' | jq -r '.models[].name'
+echo "Remote models (node-secondary):"
+ssh node-secondary 'curl -s http://localhost:11434/api/tags' | jq -r '.models[].name'
 
 # Check for model parity
 LOCAL=$(curl -s localhost:11434/api/tags | jq -r '.models[].name' | sort)
-REMOTE=$(ssh ndnlinuxsrv2 'curl -s localhost:11434/api/tags' | jq -r '.models[].name' | sort)
+REMOTE=$(ssh node-secondary 'curl -s localhost:11434/api/tags' | jq -r '.models[].name' | sort)
 
 if [ "$LOCAL" = "$REMOTE" ]; then
     echo "Model parity: OK"
@@ -84,7 +84,7 @@ echo "Testing parallel execution..."
 
 # Start parallel requests
 (curl -s http://localhost:11434/api/generate -d '{"model":"qwen2.5:3b","prompt":"Say hello","stream":false}' | jq -r '.response' > /tmp/local_result.txt) &
-(ssh ndnlinuxsrv2 'curl -s http://localhost:11434/api/generate -d '\''{"model":"qwen2.5:3b","prompt":"Say hello","stream":false}'\''' | jq -r '.response' > /tmp/remote_result.txt) &
+(ssh node-secondary 'curl -s http://localhost:11434/api/generate -d '\''{"model":"qwen2.5:3b","prompt":"Say hello","stream":false}'\''' | jq -r '.response' > /tmp/remote_result.txt) &
 
 wait
 
@@ -100,7 +100,7 @@ Infrastructure Test Report
 
 Connectivity Tests
 ------------------
-  ndnlinuxsrv2 SSH:      OK (45ms)
+  node-secondary SSH:    OK (45ms)
   Tailscale ping:        OK (12ms)
 
 Service Tests
@@ -110,17 +110,17 @@ Service Tests
     PostgreSQL:          OK
     KB API:              OK
 
-  ndnlinuxsrv2:
+  node-secondary:
     Ollama:              OK
     PostgreSQL:          OK
 
 Model Tests
 -----------
-  qwen2.5-coder:32b:     local, ndnlinuxsrv2
-  qwen2.5:3b:            local, ndnlinuxsrv2
+  qwen2.5-coder:32b:     local, node-secondary
+  qwen2.5:3b:            local, node-secondary
   deepseek-r1:8b:        local only
 
-  Model parity:          PARTIAL (1 model missing on ndnlinuxsrv2)
+  Model parity:          PARTIAL (1 model missing on node-secondary)
 
 Parallel Execution
 ------------------

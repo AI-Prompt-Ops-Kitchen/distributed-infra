@@ -12,8 +12,8 @@ This skill provides context about the Kage Bunshin distributed infrastructure.
 
 | Node | Hostname | Tailscale IP | Role | Services |
 |------|----------|--------------|------|----------|
-| Primary | ndnlinuxsrv1 | 100.77.248.9 | Main orchestrator | PostgreSQL, Ollama, KB API |
-| Secondary | ndnlinuxsrv2 | 100.95.177.124 | Worker node | Ollama, PostgreSQL replica |
+| Primary | node-primary | <PRIMARY_IP> | Main orchestrator | PostgreSQL, Ollama, KB API |
+| Secondary | node-secondary | <SECONDARY_IP> | Worker node | Ollama, PostgreSQL replica |
 
 ## Available Commands
 
@@ -33,7 +33,7 @@ Use `/kb-secrets` to manage SSH keys, API tokens, and other sensitive data.
 /kb-status --verbose
 
 # Check specific node
-/kb-status --node=ndnlinuxsrv2
+/kb-status --node=node-secondary
 ```
 
 ## Architecture
@@ -45,7 +45,7 @@ Use `/kb-secrets` to manage SSH keys, API tokens, and other sensitive data.
            │                                    │
            ▼                                    ▼
 ┌─────────────────────┐              ┌─────────────────────┐
-│   ndnlinuxsrv1      │              │   ndnlinuxsrv2      │
+│   node-primary      │              │   node-secondary    │
 │   (Primary)         │              │   (Secondary)       │
 ├─────────────────────┤              ├─────────────────────┤
 │ • PostgreSQL (main) │◄────────────►│ • PostgreSQL        │

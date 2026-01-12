@@ -20,9 +20,9 @@ for arg in "$@"; do
     esac
 done
 
-# Default target if not specified
+# Default target if not specified - UPDATE THIS WITH YOUR NODE
 if [ -z "$TARGET" ]; then
-    TARGET="ndnlinuxsrv2"
+    TARGET="node-secondary"
 fi
 
 KB_DIR=~/projects/kage-bunshin

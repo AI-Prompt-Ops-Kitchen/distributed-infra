@@ -11,26 +11,26 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Nodes configuration
+# Nodes configuration - UPDATE THESE WITH YOUR IPs
 declare -A NODES=(
-    ["ndnlinuxsrv1"]="127.0.0.1:11434"
-    ["ndnlinuxsrv2"]="100.113.166.1:11434"
-    ["rog-flow-z13"]="100.93.122.109:11434"
-    ["vengeance"]="100.98.226.75:11434"
+    ["node-primary"]="127.0.0.1:11434"
+    ["node-secondary"]="<SECONDARY_IP>:11434"
+    ["node-gpu-mobile"]="<GPU_MOBILE_IP>:11434"
+    ["node-gpu-primary"]="<GPU_PRIMARY_IP>:11434"
 )
 
 declare -A NODE_ROLES=(
-    ["ndnlinuxsrv1"]="primary"
-    ["ndnlinuxsrv2"]="secondary"
-    ["rog-flow-z13"]="gpu-mobile"
-    ["vengeance"]="gpu-primary"
+    ["node-primary"]="primary"
+    ["node-secondary"]="secondary"
+    ["node-gpu-mobile"]="gpu-mobile"
+    ["node-gpu-primary"]="gpu-primary"
 )
 
 declare -A NODE_72B=(
-    ["ndnlinuxsrv1"]="false"
-    ["ndnlinuxsrv2"]="false"
-    ["rog-flow-z13"]="true"
-    ["vengeance"]="true"
+    ["node-primary"]="false"
+    ["node-secondary"]="false"
+    ["node-gpu-mobile"]="true"
+    ["node-gpu-primary"]="true"
 )
 
 LB_ENDPOINT="http://localhost:11435"
@@ -137,7 +137,7 @@ else
     online_count=0
     total_count=${#NODES[@]}
 
-    for name in ndnlinuxsrv1 ndnlinuxsrv2 rog-flow-z13 vengeance; do
+    for name in node-primary node-secondary node-gpu-mobile node-gpu-primary; do
         endpoint=${NODES[$name]}
         result=$(check_node "$name" "$endpoint")
         IFS='|' read -r status model_count models <<< "$result"
@@ -175,17 +175,17 @@ else
     fi
 
     # 72B capability
-    rog_result=$(check_node "rog-flow-z13" "${NODES[rog-flow-z13]}")
-    veng_result=$(check_node "vengeance" "${NODES[vengeance]}")
+    gpu_mobile_result=$(check_node "node-gpu-mobile" "${NODES[node-gpu-mobile]}")
+    gpu_primary_result=$(check_node "node-gpu-primary" "${NODES[node-gpu-primary]}")
 
-    rog_online=false
-    veng_online=false
-    [[ "$rog_result" == online* ]] && rog_online=true
-    [[ "$veng_result" == online* ]] && veng_online=true
+    gpu_mobile_online=false
+    gpu_primary_online=false
+    [[ "$gpu_mobile_result" == online* ]] && gpu_mobile_online=true
+    [[ "$gpu_primary_result" == online* ]] && gpu_primary_online=true
 
-    if $rog_online && $veng_online; then
+    if $gpu_mobile_online && $gpu_primary_online; then
         echo -e "72B Inference:  ${GREEN}AVAILABLE${NC} (both GPU nodes online)"
-    elif $rog_online || $veng_online; then
+    elif $gpu_mobile_online || $gpu_primary_online; then
         echo -e "72B Inference:  ${YELLOW}PARTIAL${NC} (1 GPU node online)"
     else
         echo -e "72B Inference:  ${RED}UNAVAILABLE${NC} (no GPU nodes online)"
