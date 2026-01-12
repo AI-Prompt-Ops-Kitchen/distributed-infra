@@ -1,0 +1,13 @@
+{
+  "name": "distributed-infra",
+  "version": "1.0.0",
+  "description": "Distributed Infrastructure Management - server sync, SSH orchestration, node inventory, and encrypted credentials integration for Kage Bunshin distributed AI system",
+  "skills": [
+    "skills/infra-overview"
+  ],
+  "commands": [
+    "commands/infra-sync",
+    "commands/infra-test",
+    "commands/infra-nodes"
+  ]
+}
